@@ -1,0 +1,6 @@
+bin
+include
+lib
+MNIST_data
+.Python
+pip-selfcheck.json

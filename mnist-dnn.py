@@ -2,7 +2,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 from tensorflow.examples.tutorials.mnist import input_data
 
-hidden_layer_size = [1000, 1000, 1000, 1000, 1000, 1000]
+layer_size = [784, 1000, 100, 10]
 
 mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 
@@ -12,18 +12,16 @@ mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 x = tf.placeholder(tf.float32, [None, 784])
 
 out = x
-for idx,item in enumerate(hidden_layer_size):
-  if idx == 0 :
-    W = tf.Variable(tf.zeros([784, item]))
-    b = tf.Variable(tf.zeros(item))
-  elif idx == len(hidden_layer_size) - 1 :
-    W = tf.Variable(tf.zeros([item, 10]))
-    b = tf.Variable(tf.zeros(10)) 
-  else :
-    W = tf.Variable(tf.zeros([item, hidden_layer_size[idx + 1]]))
-    b = tf.Variable(tf.zeros(hidden_layer_size[idx + 1])) 
 
-  out = tf.nn.softmax(tf.matmul(out, W) + b)
+for idx in range(len(layer_size) - 1):
+
+  W = tf.Variable(tf.truncated_normal([layer_size[idx], layer_size[idx + 1]]),stddev = 1 / )
+  b = tf.Variable(tf.truncated_normal(layer_size[idx + 1])) 
+
+  if idx != len(layer_size) - 1 :
+    out = tf.nn.relu(tf.matmul(out, W) + b)
+  else:
+    out = tf.nn.softmax(tf.matmul(out, W) + b)
 
 y = out
 y_ = tf.placeholder(tf.float32, [None, 10])
@@ -32,7 +30,7 @@ cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y),reduction_indices=[
 square_loss = tf.reduce_mean(tf.reduce_sum((y - y_) ** 2,reduction_indices=[1]))
 
 loss = cross_entropy
-train = tf.train.AdamOptimizer().minimize(loss)
+train = tf.train.GradientDescentOptimizer(0.5).minimize(loss)
 
 correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
@@ -44,7 +42,7 @@ with tf.Session() as sess:
 
   all_step = 1000
   for i in range(all_step):
-    batch_xs, batch_ys = mnist.train.next_batch(1000)
+    batch_xs, batch_ys = mnist.train.next_batch(100)
     sess.run(train, feed_dict={x: batch_xs, y_: batch_ys})
     if i % (all_step / 100) == 0 :
       print(i / (all_step / 100))
